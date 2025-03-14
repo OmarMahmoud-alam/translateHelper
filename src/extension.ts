@@ -36,9 +36,8 @@ export function activate(context: vscode.ExtensionContext) {
         "extractFilter": ["([\\u0600-\\u06FF\\s]+)"],
         "import": [
           "import 'package:easy_localization/easy_localization.dart';",
-          "import 'package:manafa/core/app_strings/locale_keys.dart';"
         ],
-        "key": "key.tr()"
+        "key": "'{key}'.tr()"
       };
 
       // Write the JSON content to the file
@@ -134,7 +133,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function readExceptionsFile(projectRoot: string) {
   const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'prepaire.json');
   if (!fs.existsSync(exceptionsPath)) {
-    return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], extractFilter: [], import: [], key: "key.tr()" };
+    return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], extractFilter: [], import: [], key: "{key}.tr()" };
   }
 
   const fileContent = fs.readFileSync(exceptionsPath, 'utf8');
@@ -147,7 +146,7 @@ export function readExceptionsFile(projectRoot: string) {
     folderExceptions: exceptions.folderExceptions || [],
     extractFilter: exceptions.extractFilter || [],
     import: exceptions.import || [],
-    key: exceptions.key || "key.tr()"
+    key: exceptions.key || "{key}.tr()"
   };
 }
 

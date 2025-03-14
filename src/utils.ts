@@ -134,12 +134,12 @@ export function replaceStringsInFiles(folderPath: string, exceptions: any, trans
 
       for (const [key, value] of Object.entries(translations)) {
         const regex = new RegExp(`(["'])${value}(["'])`, 'g');
-        const replacement = `${exceptions.key.replace('key', key)}`;
+        const replacement = `${exceptions.key.replace('{key}', key)}`;
         updatedContent = updatedContent.replace(regex, replacement);
       }
       if (fileContent !== updatedContent) {
         exceptions.import.forEach((importStatement: string) => {
-          if (!updatedContent.includes(importStatement) && !exceptions.import.includes(importStatement)) {
+          if (!updatedContent.includes(importStatement)) {
             updatedContent = importStatement + '\n' + updatedContent;
           }
         });

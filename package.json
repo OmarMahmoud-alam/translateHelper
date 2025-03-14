@@ -2,7 +2,7 @@
   "name": "translatehelper",
   "displayName": "TranslateHelper",
   "description": "help in translate",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "publisher": "omaralam",
   "icon": "images/icon.png",
   "engines": {
@@ -27,18 +27,13 @@
         "category": "Translate"
       },
       {
-        "command": "translatehelper.extractAndReplace",
-        "title": "Extract Strings to JSON and replace(eazylocalization)",
-        "category": "Translate"
-      },
-      {
         "command": "translatehelper.makePrepairefile",
         "title": "make translate prepaire file",
         "category": "Translate"
       },
       {
         "command": "translatehelper.translatereplace",
-        "title": "Translate: Make Translate Replace Text",
+        "title": " Make Translate Replace Text",
         "category": "Translate"
       }
     ],
@@ -46,11 +41,6 @@
       "explorer/context": [
         {
           "command": "translatehelper.extractStrings",
-          "when": "explorerResourceIsFolder",
-          "group": "extension"
-        },
-        {
-          "command": "translatehelper.extractAndReplace",
           "when": "explorerResourceIsFolder",
           "group": "extension"
         },
