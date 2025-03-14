@@ -1,6 +1,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 
 /*
 export async function extractStringsFromFolder(folderPath: string, exceptions: any): Promise<string[]> {
@@ -50,23 +51,26 @@ export function extractStringsFromFile(filePath: string, exceptions: any): strin
   const fileContent = fs.readFileSync(filePath, 'utf8');
   const lines = fileContent.split('\n');
   let strings: string[] = [];
+  vscode.window.showInformationMessage('Strings extracted from file: ' + exceptions.extractFilter);
 
   for (const line of lines) {
     if (line.startsWith('import') || exceptions.lineExceptions.some((exc: string) => line.startsWith(exc))) {
       continue;
     }
     var lineStrings: string[] = [];
-    if (exceptions.ExtractFilter.length > 0) {
+
+    if (exceptions.extractFilter.length > 0) {
+      lineStrings = exceptions.extractFilter.flatMap((filter: string | RegExp) => {
+        const regex = new RegExp(filter, 'g');
+        return line.match(regex) || [];
+      });
+    }
+    else {
       lineStrings = [
         ...(line.match(/"([^"]*)"/g) || []).map(str => str.replace(/"/g, '')),
         ...(line.match(/'([^']*)'/g) || []).map(str => str.replace(/'/g, ''))
       ];
-    }
-    else {
-      lineStrings = exceptions.ExtractFilter.flatMap((filter: string | RegExp) => {
-        const regex = new RegExp(filter, 'g');
-        return line.match(regex) || [];
-      });
+
     }
 
 
@@ -126,14 +130,21 @@ export function replaceStringsInFiles(folderPath: string, exceptions: any, trans
       replaceStringsInFiles(filePath, exceptions, translations);
     } else if (file.endsWith('.dart')) {
       let fileContent = fs.readFileSync(filePath, 'utf8');
+      let updatedContent = fileContent; // Copy original content
 
       for (const [key, value] of Object.entries(translations)) {
         const regex = new RegExp(`(["'])${value}(["'])`, 'g');
-        const replacement = `LocaleKeys.${key}.tr()`;
-        fileContent = fileContent.replace(regex, replacement);
+        const replacement = `${exceptions.key.replace('key', key)}`;
+        updatedContent = updatedContent.replace(regex, replacement);
       }
-
-      fs.writeFileSync(filePath, fileContent, 'utf8');
+      if (fileContent !== updatedContent) {
+        exceptions.import.forEach((importStatement: string) => {
+          if (!updatedContent.includes(importStatement) && !exceptions.import.includes(importStatement)) {
+            updatedContent = importStatement + '\n' + updatedContent;
+          }
+        });
+        fs.writeFileSync(filePath, updatedContent, 'utf8');
+      }
     }
   }
 }

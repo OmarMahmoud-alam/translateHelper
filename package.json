@@ -2,10 +2,9 @@
   "name": "translatehelper",
   "displayName": "TranslateHelper",
   "description": "help in translate",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "publisher": "omaralam",
   "icon": "images/icon.png",
-
   "engines": {
     "vscode": "^1.91.0"
   },
@@ -16,27 +15,35 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [   
-     "onCommand:extension.formatAndReplace"
-    ],
+  "activationEvents": [
+    "onCommand:extension.formatAndReplace"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      
       {
         "command": "translatehelper.extractStrings",
         "title": "Extract Strings to JSON",
-      "category": "Translate"
+        "category": "Translate"
       },
       {
         "command": "translatehelper.extractAndReplace",
         "title": "Extract Strings to JSON and replace(eazylocalization)",
-      "category": "Translate"   
+        "category": "Translate"
+      },
+      {
+        "command": "translatehelper.makePrepairefile",
+        "title": "make translate prepaire file",
+        "category": "Translate"
+      },
+      {
+        "command": "translatehelper.translatereplace",
+        "title": "Translate: Make Translate Replace Text",
+        "category": "Translate"
       }
     ],
     "menus": {
       "explorer/context": [
-     
         {
           "command": "translatehelper.extractStrings",
           "when": "explorerResourceIsFolder",
@@ -46,11 +53,14 @@
           "command": "translatehelper.extractAndReplace",
           "when": "explorerResourceIsFolder",
           "group": "extension"
-            }
-       
+        },
+        {
+          "command": "translatehelper.translatereplace",
+          "when": "explorerResourceIsFolder",
+          "group": "extension"
+        }
       ]
-  }
-
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -79,5 +89,4 @@
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.4.0"
   }
-  
 }

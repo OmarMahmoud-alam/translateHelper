@@ -16,10 +16,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     try {
-      const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'Prepaire.json');
+      const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'prepaire.json');
+      const replacePath = path.join(projectRoot, 'assets', 'translations', 'replace.json');
+      const repdirPath = path.dirname(replacePath);
       const dirPath = path.dirname(exceptionsPath);
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
+      }
+      if (!fs.existsSync(repdirPath)) {
+        fs.mkdirSync(repdirPath, { recursive: true });
       }
 
       // Define the JSON content
@@ -28,11 +33,50 @@ export function activate(context: vscode.ExtensionContext) {
         "lineExceptions": ["line_start_to_skip"],
         "contentExceptions": ["substring_to_skip"],
         "folderExceptions": ["domain"],
-        "ExtractFilter": ["([\\u0600-\\u06FF\\s]+)"]
+        "extractFilter": ["([\\u0600-\\u06FF\\s]+)"],
+        "import": [
+          "import 'package:easy_localization/easy_localization.dart';",
+          "import 'package:manafa/core/app_strings/locale_keys.dart';"
+        ],
+        "key": "key.tr()"
       };
 
       // Write the JSON content to the file
       fs.writeFileSync(exceptionsPath, JSON.stringify(exceptionsData, null, 2));
+      fs.writeFileSync(replacePath, JSON.stringify({}, null, 2));
+      vscode.window.showInformationMessage('Prepaire file created successfully!');
+    } catch (error) {
+      vscode.window.showErrorMessage(`Error creating prepaire file: ${error}`);
+    }
+
+  });
+  let translatereplace = vscode.commands.registerCommand('translatehelper.translatereplace', async (uri: vscode.Uri) => {
+    const projectRoot: string = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? "";
+    //const replacePath = projectRoot ?? uri.fsPath;
+
+    const projectReplacedata = path.join(projectRoot, 'assets', 'translations', 'replace.json');
+
+    const replacePath: string = uri.fsPath ?? projectRoot;
+    const repdirPath = path.dirname(replacePath);
+
+    if (!projectReplacedata) {
+      vscode.window.showErrorMessage('replace file not found please make file at ' + projectReplacedata);
+      return;
+    }
+
+    try {
+
+      if (!fs.existsSync(repdirPath)) {
+        //vscode.window.showErrorMessage(`replace file not found please make file at ` + replacePath);
+        vscode.window.showInformationMessage(`replace file not found please make file at ` + replacePath);
+        return;
+      }
+      const fileContent = fs.readFileSync(projectReplacedata, 'utf8');
+      const replaceData = JSON.parse(fileContent);
+      const exceptions = readExceptionsFile(projectRoot);
+      replaceStringsInFiles(replacePath, exceptions, replaceData);
+
+
       vscode.window.showInformationMessage('Prepaire file created successfully!');
     } catch (error) {
       vscode.window.showErrorMessage(`Error creating prepaire file: ${error}`);
@@ -73,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
         const exceptions = readExceptionsFile(projectRoot);
         const strings = await extractStringsFromFolder(uri.fsPath, exceptions);
         const translations = generateTranslations(strings);
-        replaceStringsInFiles(uri.fsPath, translations, exceptions);
+        replaceStringsInFiles(uri.fsPath, exceptions, translations,);
         const translationsPath = path.join(projectRoot, 'assets', 'translations', 'en3.json');
         saveTranslations(translations, translationsPath);
         vscode.window.showInformationMessage('Strings extracted and saved successfully!');
@@ -83,14 +127,14 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(extractRemoveStrings, makePrepairefile, extractStrings);
+  context.subscriptions.push(extractRemoveStrings, makePrepairefile, extractStrings, translatereplace);
 
 }
 
 export function readExceptionsFile(projectRoot: string) {
-  const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'Prepaire.json');
+  const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'prepaire.json');
   if (!fs.existsSync(exceptionsPath)) {
-    return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], ExtractFilter: [] };
+    return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], extractFilter: [], import: [], key: "key.tr()" };
   }
 
   const fileContent = fs.readFileSync(exceptionsPath, 'utf8');
@@ -101,7 +145,9 @@ export function readExceptionsFile(projectRoot: string) {
     lineExceptions: exceptions.lineExceptions || [],
     contentExceptions: exceptions.contentExceptions || [],
     folderExceptions: exceptions.folderExceptions || [],
-    ExtractFilter: exceptions.ExtractFilter || []
+    extractFilter: exceptions.extractFilter || [],
+    import: exceptions.import || [],
+    key: exceptions.key || "key.tr()"
   };
 }
 
