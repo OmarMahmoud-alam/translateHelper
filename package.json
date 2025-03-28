@@ -2,7 +2,7 @@
   "name": "translatehelper",
   "displayName": "TranslateHelper",
   "description": "help in translate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "omaralam",
   "icon": "images/icon.png",
   "engines": {

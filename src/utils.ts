@@ -2,6 +2,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
+const variableRegex = /\$\{(\w+)\}|\$(\w+)/g;
 
 /*
 export async function extractStringsFromFolder(folderPath: string, exceptions: any): Promise<string[]> {
@@ -47,7 +48,9 @@ export async function extractStringsFromFolder(folderPath: string, exceptions: a
   return strings;
 }
 
-export function extractStringsFromFile(filePath: string, exceptions: any): string[] {
+export function
+
+  extractStringsFromFile(filePath: string, exceptions: any): string[] {
   const fileContent = fs.readFileSync(filePath, 'utf8');
   const lines = fileContent.split('\n');
   let strings: string[] = [];
@@ -61,8 +64,11 @@ export function extractStringsFromFile(filePath: string, exceptions: any): strin
 
     if (exceptions.extractFilter.length > 0) {
       lineStrings = exceptions.extractFilter.flatMap((filter: string | RegExp) => {
-        const regex = new RegExp(filter, 'g');
-        return line.match(regex) || [];
+        // If filter is already a RegExp, use it directly; otherwise create new RegExp
+        const regex = filter instanceof RegExp ? filter : new RegExp(filter, 'g');
+        const matches = line.match(regex) || [];
+        // Clean up the matches by removing quotes
+        return matches.map(match => match.replace(/^["']|["']$/g, ''));
       });
     }
     else {
@@ -131,12 +137,37 @@ export function replaceStringsInFiles(folderPath: string, exceptions: any, trans
     } else if (file.endsWith('.dart')) {
       let fileContent = fs.readFileSync(filePath, 'utf8');
       let updatedContent = fileContent; // Copy original content
-
       for (const [key, value] of Object.entries(translations)) {
-        const regex = new RegExp(`(["'])${value}(["'])`, 'g');
-        const replacement = `${exceptions.key.replace('{key}', key)}`;
-        updatedContent = updatedContent.replace(regex, replacement);
+        // Escape special regex characters in value
+        let escapedValue = value.replace(/[-\/\\^*+?.()|[\]{}]/g, '\\$&');
+
+        // Replace `${var}` placeholders dynamically
+        escapedValue = escapedValue.replace(/\${([^}]+)}/g, '\\$\\{[^}]+\\}');
+
+        // Handle `$variable` (e.g., `$months`, `$years`)
+        escapedValue = escapedValue.replace(/\$([a-zA-Z_]+)/g, '\\$[a-zA-Z_]+');
+        const variableRegex = /\$\{(\w+)\}|\$(\w+)/g;
+
+        // Create regex pattern to match value with dynamic placeholders
+        const regex = new RegExp(`(["'])${escapedValue}(["'])`, 'g');
+        const variableMatches: string[] = [];
+        let match;
+        while ((match = variableRegex.exec(value)) !== null) {
+          variableMatches.push(match[1] || match[2]);
+        }
+
+        if (false) {
+          const variableRegex = new RegExp(`\$\{(${variableMatches.join(',')})\}`);
+
+          const replacement = exceptions.keyWithVariable.replace('{key}', key).replace('{args}', variableRegex);
+          updatedContent = updatedContent.replace(variableRegex, replacement);
+        }
+        else {
+          const replacement = exceptions.key.replace('{key}', key);
+          updatedContent = updatedContent.replace(regex, replacement);
+        }
       }
+
       if (fileContent !== updatedContent) {
         exceptions.import.forEach((importStatement: string) => {
           if (!updatedContent.includes(importStatement)) {

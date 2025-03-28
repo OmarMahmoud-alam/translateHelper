@@ -33,11 +33,13 @@ export function activate(context: vscode.ExtensionContext) {
         "lineExceptions": ["line_start_to_skip"],
         "contentExceptions": ["substring_to_skip"],
         "folderExceptions": ["domain"],
-        "extractFilter": ["([\\u0600-\\u06FF\\s]+)"],
+        "extractFilter": ["[']([\\u0600-\\u06FF].*?)[']",
+          "[\"]([\\u0600-\\u06FF].*?)[\"]"],
         "import": [
           "import 'package:easy_localization/easy_localization.dart';",
         ],
-        "key": "'{key}'.tr()"
+        "key": "'{key}'.tr()",
+        "keyWithVariable": "'{key}'.tr(args: [{args}])"
       };
 
       // Write the JSON content to the file
@@ -53,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
     const projectRoot: string = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? "";
     //const replacePath = projectRoot ?? uri.fsPath;
 
-    const projectReplacedata = path.join(projectRoot, 'assets', 'translations', 'replace.json');
+    const projectReplacedata = path.join(projectRoot, 'assets', 'translationsHelper', 'replace.json');
 
     const replacePath: string = uri.fsPath ?? projectRoot;
     const repdirPath = path.dirname(replacePath);
@@ -96,7 +98,7 @@ export function activate(context: vscode.ExtensionContext) {
         const translations = generateTranslations(strings);
         vscode.window.showErrorMessage(translations.toLowerCase);
 
-        saveTranslations(translations, path.join(projectRoot, 'assets', 'translations', 'en2.json'));
+        saveTranslations(translations, path.join(projectRoot, 'assets', 'translationsHelper', 'en2.json'));
         vscode.window.showInformationMessage('Strings extracted and saved successfully!');
       } catch (error) {
         vscode.window.showErrorMessage(`Error extracting strings: ${error}`);
@@ -117,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
         const strings = await extractStringsFromFolder(uri.fsPath, exceptions);
         const translations = generateTranslations(strings);
         replaceStringsInFiles(uri.fsPath, exceptions, translations,);
-        const translationsPath = path.join(projectRoot, 'assets', 'translations', 'en3.json');
+        const translationsPath = path.join(projectRoot, 'assets', 'translationsHelper', 'en3.json');
         saveTranslations(translations, translationsPath);
         vscode.window.showInformationMessage('Strings extracted and saved successfully!');
       } catch (error) {
@@ -133,7 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function readExceptionsFile(projectRoot: string) {
   const exceptionsPath = path.join(projectRoot, 'assets', 'translationsHelper', 'prepaire.json');
   if (!fs.existsSync(exceptionsPath)) {
-    return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], extractFilter: [], import: [], key: "{key}.tr()" };
+    return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], extractFilter: [], import: [], key: "{key}.tr()", keyWithVariable: "{key}.tr(args: [{argument}])" };
   }
 
   const fileContent = fs.readFileSync(exceptionsPath, 'utf8');
@@ -146,7 +148,8 @@ export function readExceptionsFile(projectRoot: string) {
     folderExceptions: exceptions.folderExceptions || [],
     extractFilter: exceptions.extractFilter || [],
     import: exceptions.import || [],
-    key: exceptions.key || "{key}.tr()"
+    key: exceptions.key || "{key}.tr()",
+    keyWithVariable: exceptions.keyWithVariable || "{key}.tr(args: [{args}])",
   };
 }
 
