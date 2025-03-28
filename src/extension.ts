@@ -16,8 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     try {
-      const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'prepaire.json');
-      const replacePath = path.join(projectRoot, 'assets', 'translations', 'replace.json');
+      const exceptionsPath = path.join(projectRoot, 'assets', 'translationsHelper', 'prepaire.json');
+      const replacePath = path.join(projectRoot, 'assets', 'translationsHelper', 'replace.json');
       const repdirPath = path.dirname(replacePath);
       const dirPath = path.dirname(exceptionsPath);
       if (!fs.existsSync(dirPath)) {
@@ -131,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function readExceptionsFile(projectRoot: string) {
-  const exceptionsPath = path.join(projectRoot, 'assets', 'translations', 'prepaire.json');
+  const exceptionsPath = path.join(projectRoot, 'assets', 'translationsHelper', 'prepaire.json');
   if (!fs.existsSync(exceptionsPath)) {
     return { textExceptions: [], lineExceptions: [], contentExceptions: [], folderExceptions: [], extractFilter: [], import: [], key: "{key}.tr()" };
   }
